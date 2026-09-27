@@ -1,0 +1,2328 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LuaPop AI Chat + Code Panel</title>
+
+<style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  background: #0b0d12;
+  color: #fff;
+}
+
+/* =========================
+   TOP BAR
+========================= */
+
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 60px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 16px;
+
+  background: rgba(11, 13, 18, 0.92);
+  backdrop-filter: blur(16px);
+
+  border-bottom: 1px solid rgba(255,255,255,.08);
+
+  z-index: 9998;
+}
+
+.logo {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -.3px;
+}
+
+.logo span {
+  color: #667eea;
+}
+
+.top-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.top-btn {
+  border: 1px solid rgba(255,255,255,.1);
+
+  background: #151923;
+  color: #fff;
+
+  border-radius: 10px;
+
+  padding: 9px 13px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: .2s;
+}
+
+.top-btn:hover {
+  background: #1d2230;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main {
+  min-height: 100vh;
+
+  padding:
+    100px
+    20px
+    100px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero {
+  width: min(900px, 100%);
+
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: clamp(32px, 7vw, 64px);
+
+  line-height: 1.05;
+
+  letter-spacing: -2px;
+
+  margin-bottom: 18px;
+}
+
+.hero h1 span {
+  color: #667eea;
+}
+
+.hero p {
+  max-width: 650px;
+
+  margin: auto;
+
+  color: #9298a8;
+
+  line-height: 1.7;
+
+  font-size: 15px;
+}
+
+.hero-card {
+  margin-top: 35px;
+
+  padding: 25px;
+
+  background: #11141c;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  border-radius: 18px;
+
+  text-align: left;
+}
+
+.hero-card-title {
+  font-size: 14px;
+  font-weight: 700;
+
+  margin-bottom: 10px;
+}
+
+.hero-card-text {
+  color: #858b9c;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+}
+
+/* =========================
+   FLOATING BUTTON
+========================= */
+
+#openPanelBtn {
+  position: fixed;
+
+  right: 20px;
+  bottom: 20px;
+
+  z-index: 9999;
+
+  border: 0;
+
+  background: #667eea;
+  color: white;
+
+  border-radius: 14px;
+
+  padding: 13px 17px;
+
+  font-size: 14px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 12px 35px
+    rgba(102,126,234,.28);
+
+  transition: .2s;
+}
+
+#openPanelBtn:hover {
+  transform: translateY(-2px);
+}
+
+/* =========================
+   CODE PANEL
+========================= */
+
+#codePanel {
+  position: fixed;
+
+  top: 0;
+  right: 0;
+
+  width: min(760px, 100%);
+  height: 100vh;
+
+  background: #0d1017;
+
+  border-left:
+    1px solid
+    rgba(255,255,255,.08);
+
+  z-index: 10000;
+
+  display: flex;
+  flex-direction: column;
+
+  transform: translateX(105%);
+
+  transition:
+    transform .25s ease;
+
+  box-shadow:
+    -20px 0 60px
+    rgba(0,0,0,.35);
+}
+
+#codePanel.open {
+  transform: translateX(0);
+}
+
+/* =========================
+   PANEL HEADER
+========================= */
+
+.panel-header {
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 12px;
+
+  padding: 12px 16px;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.08);
+
+  background: #10131b;
+}
+
+.panel-title {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.panel-title strong {
+  font-size: 15px;
+}
+
+.panel-title span {
+  color: #777f91;
+
+  font-size: 11px;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 7px;
+}
+
+.panel-btn {
+  border:
+    1px solid
+    rgba(255,255,255,.1);
+
+  background: #171b25;
+
+  color: #fff;
+
+  border-radius: 9px;
+
+  padding: 8px 11px;
+
+  font-size: 12px;
+
+  cursor: pointer;
+}
+
+.panel-btn:hover {
+  background: #202634;
+}
+
+/* =========================
+   CODE LIST
+========================= */
+
+#codeBlocks {
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding: 15px;
+}
+
+#emptyState {
+  min-height: 100%;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  color: #697184;
+
+  font-size: 13px;
+
+  line-height: 1.7;
+
+  padding: 40px;
+}
+
+.code-item {
+  margin-bottom: 18px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.08);
+
+  border-radius: 13px;
+
+  overflow: hidden;
+
+  background: #090c11;
+}
+
+.code-item-header {
+  min-height: 43px;
+
+  padding: 9px 11px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 10px;
+
+  background: #11151e;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.07);
+}
+
+.code-item-info {
+  min-width: 0;
+}
+
+.code-item-name {
+  font-size: 12px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.code-item-meta {
+  margin-top: 3px;
+
+  color: #697184;
+
+  font-size: 10px;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+
+  border:
+    1px solid
+    rgba(255,255,255,.1);
+
+  background: #181d28;
+
+  color: #fff;
+
+  border-radius: 8px;
+
+  padding: 7px 10px;
+
+  font-size: 11px;
+
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background: #242b3a;
+}
+
+/* =========================
+   CODE VIEW
+========================= */
+
+.code-wrapper {
+  overflow-x: auto;
+
+  background: #090c11;
+}
+
+.code-table {
+  display: table;
+
+  width: 100%;
+
+  min-width: max-content;
+
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    monospace;
+
+  font-size: 12px;
+
+  line-height: 1.65;
+}
+
+.code-line {
+  display: table-row;
+}
+
+.line-number {
+  display: table-cell;
+
+  user-select: none;
+
+  text-align: right;
+
+  vertical-align: top;
+
+  width: 1%;
+
+  min-width: 45px;
+
+  padding:
+    0 10px 0 12px;
+
+  color: #3f4654;
+
+  border-right:
+    1px solid
+    rgba(255,255,255,.05);
+}
+
+.line-source {
+  display: table-cell;
+
+  padding:
+    0 14px;
+
+  white-space: pre;
+
+  color: #d8dce6;
+}
+
+/* =========================
+   LUA HIGHLIGHT
+========================= */
+
+.lua-keyword {
+  color: #c792ea;
+}
+
+.lua-string {
+  color: #c3e88d;
+}
+
+.lua-number {
+  color: #f78c6c;
+}
+
+.lua-comment {
+  color: #637080;
+}
+
+.lua-function {
+  color: #82aaff;
+}
+
+.lua-boolean {
+  color: #ffcb6b;
+}
+
+/* =========================
+   DEBUG
+========================= */
+
+#debugPanel {
+  position: fixed;
+
+  left: 10px;
+  bottom: 10px;
+
+  width: min(600px, calc(100vw - 20px));
+  max-height: 45vh;
+
+  background: #080a0e;
+
+  border:
+    1px solid
+    rgba(255,255,255,.12);
+
+  border-radius: 12px;
+
+  z-index: 20000;
+
+  display: none;
+
+  flex-direction: column;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 20px 60px
+    rgba(0,0,0,.5);
+}
+
+#debugPanel.show {
+  display: flex;
+}
+
+.debug-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 10px 12px;
+
+  background: #11151c;
+
+  border-bottom:
+    1px solid
+    rgba(255,255,255,.08);
+}
+
+.debug-header strong {
+  font-size: 12px;
+}
+
+.debug-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.debug-btn {
+  border:
+    1px solid
+    rgba(255,255,255,.1);
+
+  background: #191e28;
+
+  color: white;
+
+  border-radius: 7px;
+
+  padding: 5px 8px;
+
+  font-size: 10px;
+
+  cursor: pointer;
+}
+
+#debugOutput {
+  overflow: auto;
+
+  padding: 12px;
+
+  margin: 0;
+
+  color: #b9c0ce;
+
+  font-family:
+    "SFMono-Regular",
+    Consolas,
+    monospace;
+
+  font-size: 10px;
+
+  line-height: 1.55;
+
+  white-space: pre-wrap;
+
+  word-break: break-word;
+}
+
+/* =========================
+   TOAST
+========================= */
+
+#toast {
+  position: fixed;
+
+  left: 50%;
+  bottom: 25px;
+
+  transform:
+    translate(-50%, 20px);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  background: #1b202b;
+
+  color: white;
+
+  border:
+    1px solid
+    rgba(255,255,255,.1);
+
+  border-radius: 10px;
+
+  padding: 10px 14px;
+
+  font-size: 12px;
+
+  z-index: 30000;
+
+  transition: .2s;
+}
+
+#toast.show {
+  opacity: 1;
+
+  transform:
+    translate(-50%, 0);
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 600px) {
+
+  .main {
+    padding:
+      90px
+      15px
+      100px;
+  }
+
+  .hero h1 {
+    letter-spacing: -1px;
+  }
+
+  .hero-card {
+    padding: 18px;
+  }
+
+  #openPanelBtn {
+    right: 14px;
+    bottom: 14px;
+  }
+
+  #codePanel {
+    width: 100%;
+  }
+
+}
+</style>
+</head>
+
+<body>
+
+<!-- =========================
+     TOP BAR
+========================= -->
+
+<header class="topbar">
+
+  <div class="logo">
+    Lua<span>Pop</span> Code
+  </div>
+
+  <div class="top-actions">
+
+    <button
+      class="top-btn"
+      id="debugBtn"
+      type="button"
+    >
+      Debug
+    </button>
+
+  </div>
+
+</header>
+
+
+<!-- =========================
+     MAIN
+========================= -->
+
+<main class="main">
+
+  <section class="hero">
+
+    <h1>
+      LuaPop
+      <span>AI Code</span>
+    </h1>
+
+    <p>
+      Chat dengan LuaPop AI seperti biasa.
+      Jika respons AI mengandung kode Lua/Luau,
+      kode akan ditangkap dan ditampilkan di Code Panel
+      tanpa formatter yang mengubah source.
+    </p>
+
+    <div class="hero-card">
+
+      <div class="hero-card-title">
+        Cara kerja
+      </div>
+
+      <div class="hero-card-text">
+        1. Buka LuaPop AI.<br>
+        2. Minta AI membuat kode Lua/Luau.<br>
+        3. Jika LuaPop mengirimkan kode melalui event,
+        sistem akan mengambil source tersebut.<br>
+        4. Tombol Copy menyalin source asli yang tersimpan,
+        bukan hasil syntax highlighting.
+      </div>
+
+    </div>
+
+  </section>
+
+</main>
+
+
+<!-- =========================
+     OPEN CODE PANEL
+========================= -->
+
+<button
+  id="openPanelBtn"
+  type="button"
+>
+  Buka Code Panel
+</button>
+
+
+<!-- =========================
+     CODE PANEL
+========================= -->
+
+<aside id="codePanel">
+
+  <div class="panel-header">
+
+    <div class="panel-title">
+
+      <strong>
+        Lua Code Panel
+      </strong>
+
+      <span id="codeCount">
+        0 kode
+      </span>
+
+    </div>
+
+    <div class="panel-actions">
+
+      <button
+        class="panel-btn"
+        id="clearBtn"
+        type="button"
+      >
+        Clear
+      </button>
+
+      <button
+        class="panel-btn"
+        id="closePanelBtn"
+        type="button"
+      >
+        Tutup
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <div id="codeBlocks">
+
+    <div id="emptyState">
+
+      Belum ada kode Lua yang tertangkap.<br><br>
+
+      Kirim permintaan kode melalui LuaPop AI.
+
+    </div>
+
+  </div>
+
+</aside>
+
+
+<!-- =========================
+     DEBUG PANEL
+========================= -->
+
+<section id="debugPanel">
+
+  <div class="debug-header">
+
+    <strong>
+      LuaPop Raw Event Debug
+    </strong>
+
+    <div class="debug-actions">
+
+      <button
+        class="debug-btn"
+        id="copyDebugBtn"
+        type="button"
+      >
+        Copy
+      </button>
+
+      <button
+        class="debug-btn"
+        id="clearDebugBtn"
+        type="button"
+      >
+        Clear
+      </button>
+
+      <button
+        class="debug-btn"
+        id="closeDebugBtn"
+        type="button"
+      >
+        Tutup
+      </button>
+
+    </div>
+
+  </div>
+
+  <pre id="debugOutput">Menunggu LUA_POP_EVENT...</pre>
+
+</section>
+
+
+<!-- =========================
+     TOAST
+========================= -->
+
+<div id="toast"></div>
+
+
+<!-- =========================================================
+     LUAPOP
+========================================================= -->
+
+<script src="https://lua-ai-global.github.io/lua-pop/lua-pop.umd.js"></script>
+
+<script>
+window.LuaPop.init({
+  agentId: "baseAgent_agent_1787270173924_1nwuyakfd",
+  environment: "production",
+  position: "bottom-right",
+  buttonColor: "#667eea",
+  buttonText: "Chat dengan AI",
+  welcomeMessage: "Halo! Ada yang bisa saya bantu?"
+});
+</script>
+
+
+<!-- =========================================================
+     CODE PANEL SYSTEM
+========================================================= -->
+
+<script>
+(function () {
+
+  "use strict";
+
+
+  /* =========================================================
+     ELEMENTS
+  ========================================================= */
+
+  const panel =
+    document.getElementById("codePanel");
+
+  const openPanelBtn =
+    document.getElementById("openPanelBtn");
+
+  const closePanelBtn =
+    document.getElementById("closePanelBtn");
+
+  const clearBtn =
+    document.getElementById("clearBtn");
+
+  const codeBlocks =
+    document.getElementById("codeBlocks");
+
+  const emptyState =
+    document.getElementById("emptyState");
+
+  const codeCount =
+    document.getElementById("codeCount");
+
+  const toast =
+    document.getElementById("toast");
+
+  const debugBtn =
+    document.getElementById("debugBtn");
+
+  const debugPanel =
+    document.getElementById("debugPanel");
+
+  const debugOutput =
+    document.getElementById("debugOutput");
+
+  const closeDebugBtn =
+    document.getElementById("closeDebugBtn");
+
+  const clearDebugBtn =
+    document.getElementById("clearDebugBtn");
+
+  const copyDebugBtn =
+    document.getElementById("copyDebugBtn");
+
+
+  /* =========================================================
+     STATE
+  ========================================================= */
+
+  /*
+    PENTING:
+
+    source di sini adalah SOURCE ASLI.
+
+    Jangan pernah gunakan HTML hasil highlight
+    sebagai source copy.
+  */
+
+  const capturedSources = [];
+
+  const capturedKeys = new Set();
+
+
+  /* =========================================================
+     TOAST
+  ========================================================= */
+
+  let toastTimer = null;
+
+  function showToast(message) {
+
+    toast.textContent = message;
+
+    toast.classList.add("show");
+
+    clearTimeout(toastTimer);
+
+    toastTimer = setTimeout(function () {
+
+      toast.classList.remove("show");
+
+    }, 1800);
+
+  }
+
+
+  /* =========================================================
+     PANEL
+  ========================================================= */
+
+  openPanelBtn.addEventListener("click", function () {
+
+    panel.classList.add("open");
+
+  });
+
+
+  closePanelBtn.addEventListener("click", function () {
+
+    panel.classList.remove("open");
+
+  });
+
+
+  clearBtn.addEventListener("click", function () {
+
+    capturedSources.length = 0;
+
+    capturedKeys.clear();
+
+    codeBlocks.innerHTML = "";
+
+    codeBlocks.appendChild(emptyState);
+
+    updateCount();
+
+    showToast("Code panel dibersihkan");
+
+  });
+
+
+  function updateCount() {
+
+    const count =
+      capturedSources.length;
+
+    codeCount.textContent =
+      count +
+      (count === 1 ? " kode" : " kode");
+
+  }
+
+
+  /* =========================================================
+     DEBUG
+  ========================================================= */
+
+  debugBtn.addEventListener("click", function () {
+
+    debugPanel.classList.toggle("show");
+
+  });
+
+
+  closeDebugBtn.addEventListener("click", function () {
+
+    debugPanel.classList.remove("show");
+
+  });
+
+
+  clearDebugBtn.addEventListener("click", function () {
+
+    debugOutput.textContent =
+      "Menunggu LUA_POP_EVENT...";
+
+  });
+
+
+  copyDebugBtn.addEventListener("click", async function () {
+
+    const text =
+      debugOutput.textContent;
+
+    try {
+
+      await navigator.clipboard.writeText(text);
+
+      showToast("Debug berhasil dicopy");
+
+    } catch (error) {
+
+      const area =
+        document.createElement("textarea");
+
+      area.value = text;
+
+      area.style.position = "fixed";
+      area.style.opacity = "0";
+
+      document.body.appendChild(area);
+
+      area.select();
+
+      document.execCommand("copy");
+
+      area.remove();
+
+      showToast("Debug berhasil dicopy");
+
+    }
+
+  });
+
+
+  /* =========================================================
+     SAFE JSON
+  ========================================================= */
+
+  function safeSerialize(value) {
+
+    try {
+
+      return JSON.stringify(
+        value,
+        function (key, val) {
+
+          if (typeof val === "function") {
+            return "[Function]";
+          }
+
+          if (typeof val === "undefined") {
+            return "[undefined]";
+          }
+
+          return val;
+
+        },
+        2
+      );
+
+    } catch (error) {
+
+      return String(value);
+
+    }
+
+  }
+
+
+  /* =========================================================
+     NORMALIZE EVENT DATA
+  ========================================================= */
+
+  function getPossibleTextValues(data) {
+
+    const values = [];
+
+    const visited =
+      new Set();
+
+
+    function addValue(value, path) {
+
+      if (
+        typeof value !== "string" ||
+        !value.trim()
+      ) {
+        return;
+      }
+
+      values.push({
+        value: value,
+        path: path
+      });
+
+    }
+
+
+    function walk(value, path, depth) {
+
+      if (depth > 6) {
+        return;
+      }
+
+      if (
+        value === null ||
+        value === undefined
+      ) {
+        return;
+      }
+
+
+      if (typeof value === "string") {
+
+        addValue(value, path);
+
+        return;
+
+      }
+
+
+      if (
+        typeof value !== "object"
+      ) {
+
+        return;
+
+      }
+
+
+      if (visited.has(value)) {
+        return;
+      }
+
+      visited.add(value);
+
+
+      if (Array.isArray(value)) {
+
+        value.forEach(function (item, index) {
+
+          walk(
+            item,
+            path + "[" + index + "]",
+            depth + 1
+          );
+
+        });
+
+        return;
+
+      }
+
+
+      Object.keys(value).forEach(function (key) {
+
+        const child =
+          value[key];
+
+        const childPath =
+          path
+          ? path + "." + key
+          : key;
+
+        walk(
+          child,
+          childPath,
+          depth + 1
+        );
+
+      });
+
+    }
+
+
+    walk(data, "", 0);
+
+    return values;
+
+  }
+
+
+  /* =========================================================
+     MARKDOWN CODE EXTRACTION
+  ========================================================= */
+
+  /*
+    Fungsi ini TIDAK melakukan formatting.
+
+    Ia hanya membuang pembungkus Markdown:
+
+      ```lua
+      code
+      ```
+
+    Isi di antara fence tidak disentuh.
+  */
+
+  function extractMarkdownCode(text) {
+
+    if (
+      typeof text !== "string"
+    ) {
+      return [];
+    }
+
+
+    const results = [];
+
+    const fenceRegex =
+      /```([a-zA-Z0-9_+-]*)\r?\n([\s\S]*?)```/g;
+
+    let match;
+
+
+    while (
+      (match = fenceRegex.exec(text))
+      !== null
+    ) {
+
+      const language =
+        (match[1] || "")
+        .toLowerCase();
+
+      const source =
+        match[2];
+
+      /*
+        HANYA ambil Lua/Luau atau
+        fence tanpa bahasa yang jelas.
+
+        Source TIDAK di-trim.
+      */
+
+      if (
+        language === "" ||
+        language === "lua" ||
+        language === "luau"
+      ) {
+
+        results.push(source);
+
+      }
+
+    }
+
+
+    return results;
+
+  }
+
+
+  /* =========================================================
+     CHECK LUA-LIKE SOURCE
+  ========================================================= */
+
+  function looksLikeLua(source) {
+
+    if (
+      typeof source !== "string" ||
+      !source.trim()
+    ) {
+      return false;
+    }
+
+
+    const patterns = [
+
+      /\blocal\b/,
+      /\bfunction\b/,
+      /\bend\b/,
+      /\bif\b[\s\S]*\bthen\b/,
+      /\bfor\b/,
+      /\bwhile\b/,
+      /\brepeat\b/,
+      /\breturn\b/,
+      /\bInstance\.new\b/,
+      /\bgame:GetService\b/,
+      /\bworkspace\b/,
+      /\bPlayers\b/,
+      /\bHttpService\b/,
+      /:[A-Za-z_][A-Za-z0-9_]*\s*\(/,
+      /\bthen\b/,
+      /\bdo\b/
+
+    ];
+
+
+    let score = 0;
+
+
+    patterns.forEach(function (regex) {
+
+      if (regex.test(source)) {
+        score++;
+      }
+
+    });
+
+
+    return score >= 1;
+
+  }
+
+
+  /* =========================================================
+     CAPTURE SOURCE
+  ========================================================= */
+
+  function captureSource(
+    source,
+    origin
+  ) {
+
+    if (
+      typeof source !== "string"
+    ) {
+      return;
+    }
+
+
+    /*
+      JANGAN:
+
+      trim()
+      replace()
+      format()
+      normalize()
+      beautify()
+
+      Source disimpan apa adanya.
+    */
+
+    if (!source.trim()) {
+      return;
+    }
+
+
+    /*
+      Untuk source dari Markdown,
+      trailing newline tetap dipertahankan.
+
+      Ini penting untuk menjaga isi asli.
+    */
+
+
+    const key =
+      source;
+
+
+    if (
+      capturedKeys.has(key)
+    ) {
+
+      return;
+
+    }
+
+
+    capturedKeys.add(key);
+
+    capturedSources.push(source);
+
+    renderCodeBlock(
+      source,
+      origin
+    );
+
+    updateCount();
+
+    if (emptyState.parentNode) {
+      emptyState.remove();
+    }
+
+    showToast(
+      "Kode Lua berhasil ditangkap"
+    );
+
+  }
+
+
+  /* =========================================================
+     ESCAPE HTML
+  ========================================================= */
+
+  function escapeHTML(text) {
+
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /* =========================================================
+     LUA SYNTAX HIGHLIGHT
+     
+     PENTING:
+     Fungsi ini hanya membuat HTML tampilan.
+     SOURCE ASLI tidak pernah diganti.
+  ========================================================= */
+
+  function highlightLuaLine(line) {
+
+    let result =
+      escapeHTML(line);
+
+
+    /*
+      Placeholder supaya hasil
+      highlight tidak saling merusak.
+    */
+
+    const tokens = [];
+
+    function protect(html) {
+
+      const index =
+        tokens.length;
+
+      tokens.push(html);
+
+      return "___LUA_TOKEN_" +
+        index +
+        "___";
+
+    }
+
+
+    /*
+      Comments
+    */
+
+    result =
+      result.replace(
+        /(--.*)$/g,
+        function (match) {
+
+          return protect(
+            '<span class="lua-comment">' +
+            match +
+            "</span>"
+          );
+
+        }
+      );
+
+
+    /*
+      Strings
+    */
+
+    result =
+      result.replace(
+        /("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g,
+        function (match) {
+
+          return protect(
+            '<span class="lua-string">' +
+            match +
+            "</span>"
+          );
+
+        }
+      );
+
+
+    /*
+      Numbers
+    */
+
+    result =
+      result.replace(
+        /\b\d+(?:\.\d+)?\b/g,
+        function (match) {
+
+          return protect(
+            '<span class="lua-number">' +
+            match +
+            "</span>"
+          );
+
+        }
+      );
+
+
+    /*
+      Keywords
+    */
+
+    result =
+      result.replace(
+        /\b(local|function|end|if|then|else|elseif|for|in|do|while|repeat|until|return|break|and|or|not)\b/g,
+        '<span class="lua-keyword">$1</span>'
+      );
+
+
+    /*
+      Booleans / nil
+    */
+
+    result =
+      result.replace(
+        /\b(true|false|nil)\b/g,
+        '<span class="lua-boolean">$1</span>'
+      );
+
+
+    /*
+      Function-like calls
+    */
+
+    result =
+      result.replace(
+        /\b([A-Za-z_][A-Za-z0-9_]*)\s*(?=\()/g,
+        '<span class="lua-function">$1</span>'
+      );
+
+
+    /*
+      Restore tokens.
+
+      Karena token dibuat setelah escape,
+      ini hanya memengaruhi tampilan.
+    */
+
+    result =
+      result.replace(
+        /___LUA_TOKEN_(\d+)___/g,
+        function (_, index) {
+
+          return tokens[
+            Number(index)
+          ];
+
+        }
+      );
+
+
+    return result;
+
+  }
+
+
+  /* =========================================================
+     RENDER CODE BLOCK
+  ========================================================= */
+
+  function renderCodeBlock(
+    source,
+    origin
+  ) {
+
+    const item =
+      document.createElement("article");
+
+    item.className =
+      "code-item";
+
+
+    /* HEADER */
+
+    const header =
+      document.createElement("div");
+
+    header.className =
+      "code-item-header";
+
+
+    const info =
+      document.createElement("div");
+
+    info.className =
+      "code-item-info";
+
+
+    const name =
+      document.createElement("div");
+
+    name.className =
+      "code-item-name";
+
+    name.textContent =
+      "Lua / Luau Code";
+
+
+    const meta =
+      document.createElement("div");
+
+    meta.className =
+      "code-item-meta";
+
+    const lineCount =
+      source.split("\n").length;
+
+    meta.textContent =
+      lineCount +
+      " baris • " +
+      source.length +
+      " karakter • " +
+      (origin || "LuaPop");
+
+
+    info.appendChild(name);
+
+    info.appendChild(meta);
+
+
+    /* COPY BUTTON */
+
+    const copyBtn =
+      document.createElement("button");
+
+    copyBtn.className =
+      "copy-btn";
+
+    copyBtn.type =
+      "button";
+
+    copyBtn.textContent =
+      "Copy";
+
+
+    /*
+      Simpan source asli langsung
+      di closure tombol.
+
+      BUKAN mengambil isi DOM.
+    */
+
+    copyBtn.addEventListener(
+      "click",
+      function () {
+
+        copyExactSource(
+          source
+        );
+
+      }
+    );
+
+
+    header.appendChild(info);
+
+    header.appendChild(copyBtn);
+
+
+    /* CODE WRAPPER */
+
+    const wrapper =
+      document.createElement("div");
+
+    wrapper.className =
+      "code-wrapper";
+
+
+    const table =
+      document.createElement("div");
+
+    table.className =
+      "code-table";
+
+
+    /*
+      split("\n") tidak mengubah source
+      yang disimpan.
+
+      Ini hanya untuk visual line number.
+    */
+
+    const lines =
+      source.split("\n");
+
+
+    lines.forEach(
+      function (line, index) {
+
+        const row =
+          document.createElement("div");
+
+        row.className =
+          "code-line";
+
+
+        const number =
+          document.createElement("div");
+
+        number.className =
+          "line-number";
+
+        number.textContent =
+          String(index + 1);
+
+
+        const content =
+          document.createElement("div");
+
+        content.className =
+          "line-source";
+
+        content.innerHTML =
+          highlightLuaLine(line);
+
+
+        row.appendChild(number);
+
+        row.appendChild(content);
+
+        table.appendChild(row);
+
+      }
+    );
+
+
+    wrapper.appendChild(table);
+
+
+    item.appendChild(header);
+
+    item.appendChild(wrapper);
+
+
+    /*
+      Tambahkan kode terbaru
+      di paling atas.
+    */
+
+    codeBlocks.prepend(item);
+
+  }
+
+
+  /* =========================================================
+     COPY EXACT SOURCE
+  ========================================================= */
+
+  async function copyExactSource(
+    source
+  ) {
+
+    /*
+      INI YANG DICOPY.
+
+      BUKAN:
+
+      innerHTML
+      textContent dari highlight
+      DOM
+      formatter
+
+      Tapi source asli yang disimpan.
+    */
+
+    try {
+
+      if (
+        navigator.clipboard &&
+        navigator.clipboard.writeText
+      ) {
+
+        await navigator.clipboard.writeText(
+          source
+        );
+
+      } else {
+
+        throw new Error(
+          "Clipboard API unavailable"
+        );
+
+      }
+
+      showToast(
+        "Source asli berhasil dicopy"
+      );
+
+    } catch (error) {
+
+      /*
+        Fallback iPhone / browser lama
+      */
+
+      const textarea =
+        document.createElement("textarea");
+
+      textarea.value =
+        source;
+
+      textarea.setAttribute(
+        "readonly",
+        ""
+      );
+
+      textarea.style.position =
+        "fixed";
+
+      textarea.style.left =
+        "-9999px";
+
+      textarea.style.top =
+        "0";
+
+      document.body.appendChild(
+        textarea
+      );
+
+      textarea.focus();
+
+      textarea.select();
+
+      textarea.setSelectionRange(
+        0,
+        textarea.value.length
+      );
+
+
+      let success = false;
+
+      try {
+
+        success =
+          document.execCommand(
+            "copy"
+          );
+
+      } catch (_) {
+
+        success = false;
+
+      }
+
+
+      textarea.remove();
+
+
+      if (success) {
+
+        showToast(
+          "Source asli berhasil dicopy"
+        );
+
+      } else {
+
+        showToast(
+          "Copy gagal. Coba lagi."
+        );
+
+      }
+
+    }
+
+  }
+
+
+  /* =========================================================
+     PROCESS POSSIBLE RESPONSE
+  ========================================================= */
+
+  function processPossibleResponse(
+    value,
+    origin
+  ) {
+
+    if (
+      typeof value !== "string"
+    ) {
+      return;
+    }
+
+
+    /*
+      Cari fenced Markdown code.
+
+      Contoh:
+
+      ```lua
+      local x = 10
+      print(x)
+      ```
+
+      Source di antara fence tidak dimodifikasi.
+    */
+
+    const extracted =
+      extractMarkdownCode(value);
+
+
+    extracted.forEach(
+      function (source) {
+
+        if (
+          looksLikeLua(source)
+        ) {
+
+          captureSource(
+            source,
+            origin
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* =========================================================
+     LUA POP MESSAGE EVENT
+  ========================================================= */
+
+  window.addEventListener(
+    "message",
+    function (event) {
+
+      const data =
+        event.data;
+
+
+      /*
+        Hanya proses event LuaPop.
+      */
+
+      if (
+        !data ||
+        typeof data !== "object"
+      ) {
+        return;
+      }
+
+
+      if (
+        data.type !==
+        "LUA_POP_EVENT"
+      ) {
+        return;
+      }
+
+
+      /* =========================================
+         DEBUG RAW EVENT
+      ========================================= */
+
+      const serialized =
+        safeSerialize(data);
+
+
+      debugOutput.textContent =
+        serialized;
+
+
+      /*
+        Jangan langsung percaya satu field tertentu.
+
+        Kita cari SEMUA string di dalam payload.
+      */
+
+      const values =
+        getPossibleTextValues(
+          data
+        );
+
+
+      values.forEach(
+        function (entry) {
+
+          processPossibleResponse(
+            entry.value,
+            "LuaPop Event: " +
+            entry.path
+          );
+
+        }
+      );
+
+    },
+    false
+  );
+
+
+  /* =========================================================
+     DOM FALLBACK
+  ========================================================= */
+
+  function scanDOMForCode() {
+
+    /*
+      Ini hanya fallback.
+
+      Kita tidak lagi mengambil semua <pre>
+      lalu menganggapnya source.
+
+      Hanya blok yang benar-benar memiliki
+      Markdown fenced code yang diproses.
+    */
+
+    const elements =
+      document.querySelectorAll(
+        "pre"
+      );
+
+
+    elements.forEach(
+      function (element) {
+
+        const text =
+          element.textContent;
+
+
+        if (
+          typeof text !== "string" ||
+          !text.includes("```")
+        ) {
+          return;
+        }
+
+
+        const extracted =
+          extractMarkdownCode(
+            text
+          );
+
+
+        extracted.forEach(
+          function (source) {
+
+            if (
+              looksLikeLua(source)
+            ) {
+
+              captureSource(
+                source,
+                "DOM fallback"
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =========================================================
+     SHADOW DOM SCANNER
+  ========================================================= */
+
+  function scanShadowRoots(
+    root
+  ) {
+
+    if (!root) {
+      return;
+    }
+
+
+    const all =
+      root.querySelectorAll
+        ? root.querySelectorAll("*")
+        : [];
+
+
+    all.forEach(
+      function (element) {
+
+        if (
+          element.shadowRoot
+        ) {
+
+          scanShadowRoots(
+            element.shadowRoot
+          );
+
+        }
+
+      }
+    );
+
+
+    const pres =
+      root.querySelectorAll
+        ? root.querySelectorAll("pre")
+        : [];
+
+
+    pres.forEach(
+      function (pre) {
+
+        const text =
+          pre.textContent;
+
+
+        if (
+          typeof text !== "string" ||
+          !text.includes("```")
+        ) {
+          return;
+        }
+
+
+        const extracted =
+          extractMarkdownCode(
+            text
+          );
+
+
+        extracted.forEach(
+          function (source) {
+
+            if (
+              looksLikeLua(source)
+            ) {
+
+              captureSource(
+                source,
+                "Shadow DOM"
+              );
+
+            }
+
+          }
+        );
+
+      }
+    );
+
+  }
+
+
+  /* =========================================================
+     MUTATION OBSERVER
+  ========================================================= */
+
+  let scanTimer = null;
+
+
+  function scheduleScan() {
+
+    clearTimeout(
+      scanTimer
+    );
+
+
+    scanTimer =
+      setTimeout(
+        function () {
+
+          scanDOMForCode();
+
+          scanShadowRoots(
+            document
+          );
+
+        },
+        300
+      );
+
+  }
+
+
+  const observer =
+    new MutationObserver(
+      function () {
+
+        scheduleScan();
+
+      }
+    );
+
+
+  observer.observe(
+    document.documentElement,
+    {
+      childList: true,
+      subtree: true
+    }
+  );
+
+
+  /* =========================================================
+     INITIAL
+  ========================================================= */
+
+  updateCount();
+
+
+  /*
+    Beberapa kali scan awal karena
+    widget LuaPop dapat dimuat setelah
+    halaman selesai.
+  */
+
+  setTimeout(
+    scheduleScan,
+    500
+  );
+
+  setTimeout(
+    scheduleScan,
+    1500
+  );
+
+  setTimeout(
+    scheduleScan,
+    3000
+  );
+
+
+  /* =========================================================
+     KEYBOARD
+  ========================================================= */
+
+  document.addEventListener(
+    "keydown",
+    function (event) {
+
+      if (
+        event.key === "Escape"
+      ) {
+
+        panel.classList.remove(
+          "open"
+        );
+
+        debugPanel.classList.remove(
+          "show"
+        );
+
+      }
+
+    }
+  );
+
+
+})();
+</script>
+
+</body>
+</html>
